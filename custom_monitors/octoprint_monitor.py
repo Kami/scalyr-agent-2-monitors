@@ -70,10 +70,10 @@ class OctoPrintMonitor(ScalyrMonitor):
     def _initialize(self):
         # type: () -> None
         self.__base_url = self._config.get(
-            "base_url", convert_to=str, required_field=True,
+            "base_url", convert_to=six.text_type, required_field=True,
         )
         self.__api_key = self._config.get(
-            "api_key", convert_to=str, required_field=True,
+            "api_key", convert_to=six.text_type, required_field=True,
         )
 
         if self.__base_url.endswith("/"):
