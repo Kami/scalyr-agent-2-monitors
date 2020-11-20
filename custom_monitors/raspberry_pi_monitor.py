@@ -29,6 +29,8 @@ frequencies, that may not be needed.
 
 if False:
     from typing import List
+    from typing import Tuple
+    from typing import Callable
 
 import os
 import re
@@ -37,7 +39,6 @@ import subprocess
 from collections import OrderedDict
 
 import six
-
 from scalyr_agent import ScalyrMonitor
 from scalyr_agent import define_config_option
 from scalyr_agent import define_log_field
@@ -111,6 +112,7 @@ define_metric(
     "Voltage for SDRAM Phy in Volts",
 )
 
+
 def parse_clock(value):
     # type: (str) -> int
     clock = int(re.split(r"frequency\(.*?\)", value)[1].replace("=", ""))
@@ -124,8 +126,8 @@ def parse_clock(value):
 def parse_volts(value):
     # type: (str) -> float
     volts = value.replace("volt=", "").replace("V", "")
-    volts = round(float(volts), 2)
-    return volts
+    result = round(float(volts), 2)
+    return result
 
 
 # Maps Scalyr metric name to vcgencmd command args and result conversion function
@@ -198,14 +200,15 @@ class RaspberryPiMetricsMonitor(ScalyrMonitor):
             raise ValueError("Binary path %s doesn't exist" % (self.__binary_path))
 
     def gather_sample(self):
-        # type: (None) -> None
+        # type: () -> None
         for metric_name, values in six.iteritems(COMMAND_ARGS_TO_METRIC_NAME_MAP):
-            command_args = values["args"]
-            parse_func = values["parse_func"]
+            command_args = values["args"]  # type: List[str]
+            parse_func = values["parse_func"]  # type: Callable
             success, value = self._gather_value(command_args=command_args)
 
             if not success:
-                self._logger.warn("Failed to retrieve value for metric %s: %s" % (metric_name, value))
+                self._logger.warn("Failed to retrieve value for metric %s: %s" % (metric_name,
+                                                                                  value))
                 continue
 
             metric_value = parse_func(value)
@@ -213,7 +216,7 @@ class RaspberryPiMetricsMonitor(ScalyrMonitor):
             self._logger.emit_value(metric_name, metric_value)
 
     def _gather_value(self, command_args):
-        # type: (List) -> str
+        # type: (List[str]) -> Tuple[bool, str]
         p = subprocess.Popen(
             args=[self.__binary_path] + command_args,
             stdout=subprocess.PIPE,
@@ -230,6 +233,7 @@ class RaspberryPiMetricsMonitor(ScalyrMonitor):
             (stdout, stderr,) = p.communicate()
 
         if p.returncode != 0:
-            return False, "Process exited with non-zero: stdout=%s,stderr=%s" % (stdout, stderr)
+            return False, "Process exited with non-zero: stdout=%s,stderr=%s" % (
+                stdout.decode("utf-8"), stderr.decode("utf-8"))
 
         return True, stdout.decode("utf-8").strip()
