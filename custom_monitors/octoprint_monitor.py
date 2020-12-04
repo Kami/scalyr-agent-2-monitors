@@ -114,11 +114,11 @@ class OctoPrintMonitor(ScalyrMonitor):
 
             self._logger.emit_value(
                 "octoprint.tool.temperature.actual",
-                data["temperature"]["bed"]["actual"],
+                data["temperature"][key]["actual"],
                 extra_fields=extra_fields,
             )
             self._logger.emit_value(
                 "octoprint.tool.temperature.target",
-                data["temperature"]["bed"]["target"],
+                data["temperature"][key]["target"],
                 extra_fields=extra_fields,
             )
