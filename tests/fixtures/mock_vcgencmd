@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+if [ "$1" = "measure_temp" ]; then
+    echo "temp=49.0'C"
+elif [ "$1" = "get_throttled" ]; then
+    echo "throttled=0x0"
+    #echo "throttled=0x50000"
+elif [ "$1" = "measure_clock" ]; then
+    if [ "$2" = "arm" ]; then
+        echo "frequency(48)=1800404352"
+    elif [ "$2" = "core" ]; then
+        echo "frequency(1)=500000992"
+    elif [ "$2" = "H264" ]; then
+        echo "frequency(0)=0"
+    elif [ "$2" = "emmc" ]; then
+        echo "frequency(50)=250000496"
+    elif [ "$2" = "vec" ]; then
+        echo "frequency(10)=0"
+    fi
+elif [ "$1" = "measure_volts" ]; then
+    if [ "$2" = "core" ]; then
+        echo "volt=0.9400V"
+    elif [ "$2" = "sdram_c" ]; then
+        echo "volt=1.1000V"
+    elif [ "$2" = "sdram_i" ]; then
+        echo "volt=1.1000V"
+    elif [ "$2" = "sdram_p" ]; then
+        echo "volt=1.1000V"
+    fi
+fi
+
+exit 0
