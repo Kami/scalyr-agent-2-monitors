@@ -28,6 +28,8 @@ from typing import cast
 
 import socket
 import time
+import string
+import random
 import subprocess
 
 import six
@@ -81,12 +83,13 @@ class TracerouteMonitor(ScalyrMonitor):
         # TODO: Add info on how to configure Docker monitor to exclude fetching log from this
         # container
         ts_now = int(time.time())
+        random_value = "".join(random.choice(string.ascii_lowercase) for _ in range(6))
         cmd = [
             "docker",
             "run",
             "--rm",
             "--name",
-            f"fast-mda-traceroute-{ts_now}",
+            f"fast-mda-traceroute-{ts_now}-{random_value}",
             "ghcr.io/dioptra-io/fast-mda-traceroute",
             "--format",
             "scamper-json",
