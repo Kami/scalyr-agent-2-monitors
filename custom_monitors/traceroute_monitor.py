@@ -153,8 +153,9 @@ class TracerouteMonitor(ScalyrMonitor):
             try:
                 node_rtt = node["links"][-1][-1]["probes"][-1]["replies"][-1]["rtt"]
             except KeyError:
-                self._logger.warn(f"Failed to parse node links", exc_info=True)
-                self._logger.warn(f"Output: {node['links'][-1][-1]}")
+                continue
+                #self._logger.warn(f"Failed to parse node links", exc_info=True)
+                #self._logger.warn(f"Output: {node['links'][-1][-1]}")
                 continue
 
             hop_rtts.append(node_rtt)
