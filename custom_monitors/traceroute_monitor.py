@@ -71,7 +71,7 @@ class TracerouteMonitor(ScalyrMonitor):
             "label": self.__label or "",
             "hops": ",".join(result["hops"]),
             "hop_rtts": ",".join([str(value) for value in result["hop_rtts"]]),
-            "total_rtt": sum(result["hop_rtts"]),
+            "total_rtt": round(sum(result["hop_rtts"]), 2),
             "method": result["method"]
         }
         self._logger.emit_value("traceroute.hops", result["hops_count"], extra_fields=extra_fields)
