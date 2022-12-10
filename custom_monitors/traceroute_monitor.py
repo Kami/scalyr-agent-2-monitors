@@ -80,6 +80,8 @@ class TracerouteMonitor(ScalyrMonitor):
         cmd = [
             "docker",
             "run",
+            "--label",
+            "container=traceroute",
             "ghcr.io/dioptra-io/fast-mda-traceroute",
             "--format",
             "scamper-json",
