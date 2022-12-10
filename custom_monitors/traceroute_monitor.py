@@ -107,6 +107,8 @@ class TracerouteMonitor(ScalyrMonitor):
         return result
 
     def __parse_output(self, output: bytes) -> Optional[Dict[str, Any]]:
+        output = output.decode("utf-8")
+
         parsed_data = []
         for line in output.splitlines():
             line = line.strip()
@@ -119,12 +121,14 @@ class TracerouteMonitor(ScalyrMonitor):
 
         if len(parsed_data) == 0:
             self._logger.warn(f"Parsed data is empty")
+            self._logger.warn(f"Output: {output}")
             return None
 
         items = [item for item in parsed_data if item["type"] == "tracelb"]
 
         if len(items) != 1:
             self._logger.warn("Parsed data is missing or having more than one tracelb item")
+            self._logger.warn(f"Output: {output}")
             return None
 
         data: Dict[str, Any] = items[0]
@@ -134,6 +138,7 @@ class TracerouteMonitor(ScalyrMonitor):
 
         if not data.get("nodes", None):
             self._logger.warn("Parsed data is missing nodes key (wait argument may be too low)")
+            self._logger.warn(f"Output: {output}")
             return None
 
         # Parse RTTs from the result
@@ -142,7 +147,12 @@ class TracerouteMonitor(ScalyrMonitor):
             hop = node["links"][-1][-1]["addr"]
             hops.append(hop)
             # NOTE: We only use the last packet
-            node_rtt = node["links"][-1][-1]["probes"][-1]["replies"][-1]["rtt"]
+            try:
+                node_rtt = node["links"][-1][-1]["probes"][-1]["replies"][-1]["rtt"]
+            except KeyError:
+                self._logger.warn(f"Failed to parse node links", exc_info=True)
+                self._logger.warn(f"Output: {output}")
+
             hop_rtts.append(node_rtt)
 
         result = {
