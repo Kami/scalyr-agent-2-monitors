@@ -116,7 +116,7 @@ class TracerouteMonitor(ScalyrMonitor):
             if not line:
                 continue
 
-            item = scalyr_util.json_decode(line.decode("utf-8"))
+            item = scalyr_util.json_decode(line)
             parsed_data.append(item)
 
         if len(parsed_data) == 0:
@@ -152,6 +152,7 @@ class TracerouteMonitor(ScalyrMonitor):
             except KeyError:
                 self._logger.warn(f"Failed to parse node links", exc_info=True)
                 self._logger.warn(f"Output: {output}")
+                continue
 
             hop_rtts.append(node_rtt)
 
