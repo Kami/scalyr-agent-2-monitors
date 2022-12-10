@@ -27,6 +27,7 @@ from typing import Optional
 from typing import cast
 
 import socket
+import time
 import subprocess
 
 import six
@@ -77,11 +78,15 @@ class TracerouteMonitor(ScalyrMonitor):
         self._logger.emit_value("traceroute.hops", result["hops_count"], extra_fields=extra_fields)
 
     def __run_traceroute_and_parse_output(self) -> Optional[Dict[str, Any]]:
+        # TODO: Add info on how to configure Docker monitor to exclude fetching log from this
+        # container
+        ts_now = int(time.time())
         cmd = [
             "docker",
             "run",
-            "--label",
-            "container=traceroute",
+            "--rm",
+            "--name",
+            f"fast-mda-traceroute-{ts_now}",
             "ghcr.io/dioptra-io/fast-mda-traceroute",
             "--format",
             "scamper-json",
