@@ -18,13 +18,18 @@ device.
 """
 
 import time
+import logging
+
+# NOTE: Should use feature/exception-handling branch with connection retry fies
+# pip install git+https://github.com/BeatsuDev/tibber.py.git@feature/exception-handling
+
+import tibber
 
 from scalyr_agent import ScalyrMonitor
 from scalyr_agent import define_config_option
 from scalyr_agent import define_log_field
 from scalyr_agent import define_metric
-
-import tibber
+from scalyr_agent import scalyr_logging
 
 __monitor__ = __name__
 
@@ -47,7 +52,8 @@ define_metric(
     "Current electricity consumption in watts",
 )
 
-import logging
+
+global_log = scalyr_logging.getLogger(__name__)
 
 class TibberPulselectricityConsumptionMonitor(ScalyrMonitor):
     def _initialize(self):
@@ -107,7 +113,9 @@ class TibberPulselectricityConsumptionMonitor(ScalyrMonitor):
 
                 self._last_sample_ts = now_ts
 
-        self._home.start_live_feed(user_agent="ScalyrAgentMonitor/0.0.1", exit_condition=when_to_stop)
+        self._home.start_live_feed(user_agent="ScalyrAgentMonitor/0.0.1",
+                                   connection_retries=10, query_retries=10,
+                                   exit_condition=when_to_stop)
 
         self._callbacks_added = True
 
@@ -120,5 +128,14 @@ class TibberPulselectricityConsumptionMonitor(ScalyrMonitor):
         # This monitor is async and uses callback so gather_sample is a no-op.
         if not self._callbacks_added:
             # We add callbacks on first iteration since "_initialize()" is called before we call
-            # parent constructor so not all the thread related state is available yet
-            self._add_callbacks()
+            # parent constructor so not all the thread related state is available yet. Keep in mind
+            # that this method is blocking since it calls underlying blocking library method.
+            try:
+                self._add_callbacks()
+            except Exception:
+                # There are multiple bugs in the underlying libraries which can result in
+                # uncaught exceptions which stop the loop. In case like this, we set
+                # _callbacks_added to False to they get re-added and live feed + async loop
+                # re-started on the next gather sample call
+                global_log.exception("Received an exception when waiting for data in an async loop")
+                self._callbacks_added = False
